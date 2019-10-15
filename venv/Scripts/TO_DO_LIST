@@ -1,0 +1,143 @@
+Classes that we need
+Main
+    runs game
+    global vars
+Scoreboard
+    Score
+        holds score
+    Time
+        show time for level
+        remainder is added to score
+    World
+        show level
+    Coins
+        holds coins
+        gives life after 100 collected
+    Lives
+        holds lives
+Timer
+        for animation
+Mario
+    movement
+    position
+    collision
+    break brick flag
+    invincible flag
+
+    subclass LittleMario
+        default mario for new game only
+        will die
+        sprite size
+        different spritesheet
+        break brick = false
+        invincible = false
+
+    subclass SuperMario
+        shrink
+        sprite size
+        diffrent spritesheet
+        break brick = true
+        invincible = false
+
+    subclass FireMario
+        shrink
+        shoot fire
+        different spritesheet
+        animations
+        break brick = true
+        invincible = false
+
+    flag InvincibleMario
+        immune rather kills
+    flag Break bricks
+        can break bricks
+
+
+class Fireball
+    postion
+    animation
+    sprite
+    collision
+    can kill enemies
+
+Class Check_event
+    up,w = jump
+    down,s = duck
+    left,a = left movement
+    right,d = right movement
+    ctrl/shift = sprint/shoot
+    p = pause
+    may need to handle physics here
+
+class object
+    16x16 rect
+    breakable flag
+    surface flag
+
+    subclass bricks
+        ? bricks
+        breakable bricks
+        brick is 16X16
+        animation/move
+
+    subclass pipes/floor
+        noninteractive
+        if special pipe can enter special level
+
+class level
+    level sprite load
+    212 brick  width
+    load all objects
+    load all enemies
+    load characters
+    load items
+    update scoreboard
+    moves with character
+    cant go backwards
+    fall off points
+
+class enemies
+    8 enemies
+    positions
+    can kill
+    animations/ movements
+    give different sprites
+    all 1 mario width except fire
+    turtle has shell
+    if jumped on die
+    displays pt value
+
+class shell
+    can kill anyone moving
+    can fall off map
+    bounces
+    if jumped on activate postionally dependent
+
+
+class items
+    exists
+    value
+    id value to change mario state
+     subclass coins
+        give score
+        animations
+        increemtn coin
+     subclass magicmushroom
+        give score
+        animations
+        change mario state to super mario
+     subclass fireflower
+        give score
+        animations
+        change mario state to fire mario
+     subclass star
+        give score
+        animations
+        change invincibilitty flag to true
+     subclass 1upshroom
+        novalue
+        animations
+        increment life
+
+class levelsettings
+    holds position and number of all objects in the level
