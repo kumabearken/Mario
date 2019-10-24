@@ -48,6 +48,7 @@ class Enemy(Sprite):
 
 
 class Goomba(Enemy):
+    """ Class to define Goomba """
     def __init__(self, screen):
         sprite_sheet = SpriteSheet("images/enemies.png")
         self.goombas = []
