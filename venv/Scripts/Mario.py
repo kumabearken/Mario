@@ -1,4 +1,4 @@
-import pygame
+"""import pygame
 from pygame.sprite import Sprite
 from spritesheet import *
 from Timer import Timer
@@ -50,11 +50,11 @@ class LittleMario(Mario):
         self.rect = self.image.get_rect()
         self.rect.x = 100
         self.rect.y = 300
-
+"""
 import pygame
 from pygame.sprite import Sprite
-from Spritesheet import SpriteSheet
-from timer import Timer
+from spritesheet import spritesheet
+from Timer import Timer
 
 
 class Mario(Sprite):
@@ -74,9 +74,10 @@ class Mario(Sprite):
         self.left_image = self.mario_left.imagerect()
         self.rect = self.right_image.get_rect()
 
-        self.rect.x = self.screen_rect.x + 150
-        self.rect.bottom = self.screen_rect.bottom
-
+        #self.rect.x = self.screen_rect.x + 150
+        #self.rect.bottom = self.screen_rect.bottom
+        self.rect.x = 100
+        self.rect.y = 300
         # store objects exact position
         self.center = float(self.rect.centerx)
 
@@ -98,6 +99,7 @@ class Mario(Sprite):
 
     def blitme(self):
         if self.facing_right:
+            print(self.rect)
             self.screen.blit(self.right_image, self.rect)
         elif self.facing_left:
             self.screen.blit(self.left_image, self.rect)
@@ -107,12 +109,15 @@ class Mario(Sprite):
 
         # animations for moving right and left: excludes last image in list (jump image)
         if self.moving_right and self.rect.right < self.screen_rect.right and not self.is_jumping:
-            self.center += 5
+            if self.rect.x <= 480 and not self.obstacleR:
+                self.center += 5
             if self.mario_right.frame_index() != self.mario_right.lastframe:
+                print("index" + str(self.mario_right.frame_index()))
                 self.right_image = self.walk_right[self.mario_right.frame_index()]
 
         elif self.moving_left and self.rect.left > 0 and not self.is_jumping:
-            self.center -= 5
+            if not self.obstacleL:
+                self.center -= 5
             if self.mario_left.frame_index() != self.mario_left.lastframe:
                 self.left_image = self.walk_left[self.mario_left.frame_index()]
 
@@ -137,7 +142,7 @@ class Mario(Sprite):
 
     def jump(self):
         """ Function to handle when mario jumps """
-        if self.rect.bottom >= self.screen_rect.bottom:
+        if not self.floor:
             self.jump_speed = -7
 
     def gravity(self):
@@ -148,9 +153,8 @@ class Mario(Sprite):
             self.jump_speed += .45
 
         # mario has landed on surface
-        if self.rect.y >= self.screen_rect.bottom - self.rect.height and self.jump_speed >= 0:
+        if not self.floor and self.jump_speed >= 0:
             self.jump_speed = 0
-            self.rect.y = self.screen_rect.bottom - self.rect.height
             self.is_jumping = False
 
 
@@ -163,7 +167,7 @@ class LittleMario(Mario):
         self.invincible = False
 
         # load right-facing images
-        sprite_sheet = SpriteSheet("images/mario.png")
+        sprite_sheet = spritesheet("Images/mario.png")
         image = pygame.transform.scale(sprite_sheet.get_image(210, 0, 15, 16), (32, 32))
         self.walk_right.append(image)
         image = pygame.transform.scale(sprite_sheet.get_image(240, 0, 15, 16), (32, 32))
@@ -206,7 +210,7 @@ class SuperMario(Mario):
         self.invincible = False
 
         # load right-facing images
-        sprite_sheet = SpriteSheet("images/mario.png")
+        sprite_sheet = spritesheet("images/mario.png")
         image = pygame.transform.scale(sprite_sheet.get_image(210, 52, 16, 32), (32, 64))
         self.walk_right.append(image)
         image = pygame.transform.scale(sprite_sheet.get_image(240, 52, 16, 32), (32, 64))
