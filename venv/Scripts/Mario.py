@@ -3,6 +3,8 @@ from pygame.sprite import Sprite
 from spritesheet import *
 from Timer import Timer
 
+GRAVITY = 5
+
 class Mario(Sprite):
     def __init__(self, screen):
         self.screen = screen

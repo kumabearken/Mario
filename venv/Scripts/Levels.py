@@ -1,10 +1,8 @@
 import pygame
 import Mario
-import Enemies
 import Brick
-import Scoreboard
 BLACK = (0,0,0)
-CREATE = False
+CREATE = True
 SPEED = 5
 if CREATE:
     SPEED=960
