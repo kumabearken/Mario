@@ -92,13 +92,12 @@ def check_collisiontype(level, mario):
                 mario.rect.y= blocks.rect.y - 32
             #sides
             if str(type(blocks)) == "<class 'Brick.Pipe'>" \
-                    and (mario.rect.left < blocks.rect.right or mario.rect.right > blocks.rect.left) \
+                    and (mario.rect.left <= blocks.rect.right or mario.rect.right >= blocks.rect.left) \
                     and mario.rect.bottom > blocks.rect.top\
-                    and mario.rect.top > blocks.rect.top:
+                    and mario.rect.top > blocks.rect.top-16:
                 if mario.rect.right >= blocks.rect.left \
                         and not mario.obstacleL\
                         and mario.rect.left < blocks.rect.left:
-                    #print("mario right " + str(mario.rect.right) + " box left " + str(blocks.rect.left))
                     mario.rect.right = blocks.rect.left -1
                     mario.obstacleR = True
                 else:
@@ -106,7 +105,6 @@ def check_collisiontype(level, mario):
                 if mario.rect.left <= blocks.rect.right \
                     and not mario.obstacleR\
                     and mario.rect.right > blocks.rect.right:
-                    #print("mario left "+str(mario.rect.left) + " box right " + str(blocks.rect.right))
                     mario.rect.left = blocks.rect.right + 1
                     mario.obstacleL = True
                 else:
@@ -114,14 +112,13 @@ def check_collisiontype(level, mario):
             else:
                 mario.obstacleR = False
                 mario.obstacleL = False
-            if mario.obstacleR:
+            if mario.obstacleR or mario.obstacleL:
                 print("im colliding")
             #top of pipe
             if str(type(blocks)) == "<class 'Brick.Pipe'>" \
-                    and (mario.rect.left < blocks.rect.right and mario.rect.right > blocks.rect.left) \
-                    and mario.rect.bottom >= blocks.rect.top\
+                    and (mario.rect.left < blocks.rect.right-5 and mario.rect.right > blocks.rect.left+5) \
+                    and mario.rect.bottom > blocks.rect.top-32\
                     and not mario.obstacleL and not mario.obstacleR:
-                print("im on top")
                 mario.floor = True
                 mario.rect.y= blocks.rect.y - 32
 

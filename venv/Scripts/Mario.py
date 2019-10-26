@@ -58,12 +58,10 @@ class Mario(Sprite):
         if self.moving_right and not self.is_jumping  and self.rect.x <= 480:
             if not self.obstacleR:
                 self.center += 5
-            #print("trouble 1")
             if self.mario_right.frame_index() < self.mario_right.lastframe-1:
                 self.right_image = self.walk_right[self.mario_right.frame_index()]
             if self.obstacleL:
                 self.obstacleL = False
-
         elif self.moving_left and not self.is_jumping and self.rect.x <= 480:
             if not self.obstacleL:
                 self.center -= 5
@@ -75,10 +73,8 @@ class Mario(Sprite):
         elif self.moving_right and not self.is_jumping  and self.rect.x >= 480:
             if self.mario_right.frame_index() < self.mario_right.lastframe-1:
                 self.right_image = self.walk_right[self.mario_right.frame_index()]
-            #print("never mak it")
             if self.obstacleL:
                 self.obstacleL = False
-
         elif self.moving_left and not self.is_jumping and self.rect.x >= 480:
             if not self.obstacleL:
                 self.center -= 5
@@ -97,7 +93,6 @@ class Mario(Sprite):
         elif self.is_jumping and self.facing_right and self.rect.x <= 480:
             if not self.obstacleR and self.moving_right:
                 self.center += 5
-                print("im ruining everything")
             self.right_image = self.walk_right[-2]
         elif self.is_jumping and self.facing_left and self.rect.x <= 480:
             if not self.obstacleL and self.moving_left:
@@ -143,7 +138,7 @@ class Mario(Sprite):
     def jump(self):
         """ Function to handle when mario jumps """
         if self.floor:
-            self.jump_speed = -10
+            self.jump_speed = -11
             self.floor = False
 
     def gravity(self):
