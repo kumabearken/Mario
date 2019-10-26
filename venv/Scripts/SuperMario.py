@@ -22,7 +22,5 @@ while True:
     gf.update_mario(mario=mario)
     gf.updateLevel(level=level, mario =mario)
     gf.check_collisiontype(mario=mario, level=level)
-    print(mario.rect.x)
-    print(mario.rect.y)
     gf.update_screen(screen = screen, mario = mario, level = level)
 

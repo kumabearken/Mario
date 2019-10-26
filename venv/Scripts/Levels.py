@@ -78,8 +78,10 @@ class Level():
         self.environment.append(box)
 
     def camera(self,mario):
-        if (mario.rect.x >= 480 and mario.moving_right):
+        if (mario.rect.x >= 480 and mario.moving_right and not mario.obstacleR):
             self.move = True
+            #print("camera moving")
         else:
             self.move = False
+            #print("camera NOT moving")
 
