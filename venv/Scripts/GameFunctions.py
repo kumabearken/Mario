@@ -30,8 +30,7 @@ def check_keydown(event, mario):
         mario.is_jumping = True
         mario.jump()
     elif event.key == pygame.K_DOWN or event.key == K_s:
-        mario.crouch = True
-        pass
+        mario.crouching = True
     elif event.key == pygame.K_q:
         sys.exit()
 
@@ -47,8 +46,7 @@ def check_keyup(event, mario):
     elif event.key == pygame.K_UP or event.key == K_w or event.key == pygame.K_SPACE:
         mario.is_jumping = True
     elif event.key == pygame.K_DOWN or event.key == K_s:
-        mario.crouch = False
-        pass
+        mario.crouching = False
 
 
 def check_mario_enemy_collision(screen, mario, enemies):
@@ -83,14 +81,16 @@ def create_goomba(screen, enemies):
     goomba = Goomba(screen=screen)
     enemies.append(goomba)
 
-def check_collisiontype(level, mario):
+def check_collisiontype(level, mario, LEVELS):
     for blocks in level.environment:
         if (pygame.sprite.collide_rect(mario, blocks)):
-            #floor
+            #floor==========================================================================================
             if str(type(blocks)) == "<class 'Brick.Floor'>" and mario.rect.bottom >= blocks.rect.top:
                 mario.floor=True
                 mario.rect.y= blocks.rect.y - 32
-            #sides
+
+            #sides===========================================================================================
+            #PIPE-------------------------------------------------------------------------------------------
             if str(type(blocks)) == "<class 'Brick.Pipe'>" \
                     and (mario.rect.left <= blocks.rect.right or mario.rect.right >= blocks.rect.left) \
                     and mario.rect.bottom > blocks.rect.top\
@@ -105,27 +105,169 @@ def check_collisiontype(level, mario):
                 if mario.rect.left <= blocks.rect.right \
                     and not mario.obstacleR\
                     and mario.rect.right > blocks.rect.right:
+                    print( "mario.rect " + str(mario.rect))
                     mario.rect.left = blocks.rect.right + 1
                     mario.obstacleL = True
+                    print("block.rect " + str(blocks.rect))
+                    print("culprit 5")
                 else:
                     mario.obstacleL = False
+            #BASIC--------------------------------------------------------------------------------------------
+            elif str(type(blocks)) == "<class 'Brick.Basic'>" \
+                    and (mario.rect.left <= blocks.rect.right or mario.rect.right >= blocks.rect.left) \
+                    and mario.rect.bottom > blocks.rect.top\
+                    and mario.rect.top > blocks.rect.top-16\
+                    and mario.rect.bottom <= blocks.rect.bottom:
+                if mario.rect.right >= blocks.rect.left \
+                        and not mario.obstacleL\
+                        and mario.rect.left < blocks.rect.left:
+                    mario.rect.right = blocks.rect.left -1
+                    mario.obstacleR = True
+                else:
+                    mario.obstacleR = False
+                if mario.rect.left <= blocks.rect.right \
+                    and not mario.obstacleR\
+                    and mario.rect.right > blocks.rect.right:
+                    mario.rect.left = blocks.rect.right + 1
+                    mario.obstacleL = True
+                    print("culprit 4")
+                else:
+                    mario.obstacleL = False
+            #QUESTION------------------------------------------------------------------------------------------
+            elif str(type(blocks)) == "<class 'Brick.Question'>" \
+                    and (mario.rect.left <= blocks.rect.right or mario.rect.right >= blocks.rect.left) \
+                    and mario.rect.bottom > blocks.rect.top\
+                    and mario.rect.top > blocks.rect.top-16\
+                    and mario.rect.bottom <= blocks.rect.bottom:
+                if mario.rect.right >= blocks.rect.left \
+                        and not mario.obstacleL\
+                        and mario.rect.left < blocks.rect.left:
+                    mario.rect.right = blocks.rect.left -1
+                    mario.obstacleR = True
+                else:
+                    mario.obstacleR = False
+                if mario.rect.left <= blocks.rect.right \
+                    and not mario.obstacleR\
+                    and mario.rect.right > blocks.rect.right:
+                    mario.rect.left = blocks.rect.right + 1
+                    mario.obstacleL = True
+                    print("culprit 3")
+                else:
+                    mario.obstacleL = False
+            #INTERACTABLE------------------------------------------------------------------------------------------
+            elif str(type(blocks)) == "<class 'Brick.Interactable'>" \
+                    and (mario.rect.left <= blocks.rect.right or mario.rect.right >= blocks.rect.left) \
+                    and mario.rect.bottom > blocks.rect.top\
+                    and mario.rect.top > blocks.rect.top-16\
+                    and mario.rect.bottom <= blocks.rect.bottom:
+                if mario.rect.right >= blocks.rect.left \
+                        and not mario.obstacleL\
+                        and mario.rect.left < blocks.rect.left:
+                    mario.rect.right = blocks.rect.left -1
+                    mario.obstacleR = True
+                    print("culprit 2")
+                else:
+                    mario.obstacleR = False
+                if mario.rect.left <= blocks.rect.right \
+                    and not mario.obstacleR\
+                    and mario.rect.right > blocks.rect.right:
+                    mario.rect.left = blocks.rect.right + 1
+                    mario.obstacleL = True
+                    print("culprit 1")
+                else:
+                    mario.obstacleL = False
+            #FLAG------------------------------------------------------------------------------------------
+            elif str(type(blocks)) == "<class 'Brick.Flag'>" \
+                    and (mario.rect.left <= blocks.rect.right or mario.rect.right >= blocks.rect.left) \
+                    and mario.rect.bottom > blocks.rect.top\
+                    and mario.rect.top > blocks.rect.top-16\
+                    and mario.rect.bottom <= blocks.rect.bottom:
+                print("got flag")
+            #RESET-----------------------------------------------------------------------------------------------
             else:
                 mario.obstacleR = False
                 mario.obstacleL = False
             if mario.obstacleR or mario.obstacleL:
                 print("im colliding")
-            #top of pipe
+
+            #top==================================================================================================
+            #PIPE-----------------------------------------------------------------------------------------------
             if str(type(blocks)) == "<class 'Brick.Pipe'>" \
                     and (mario.rect.left < blocks.rect.right-5 and mario.rect.right > blocks.rect.left+5) \
                     and mario.rect.bottom > blocks.rect.top-32\
                     and not mario.obstacleL and not mario.obstacleR:
                 mario.floor = True
                 mario.rect.y= blocks.rect.y - 32
+            #BASIC-----------------------------------------------------------------------------------------------
+            if str(type(blocks)) == "<class 'Brick.Basic'>" \
+                    and (mario.rect.left < blocks.rect.right-5 and mario.rect.right > blocks.rect.left+5) \
+                    and mario.rect.bottom > blocks.rect.top-32 \
+                    and mario.rect.top < blocks.rect.top \
+                    and not mario.obstacleL and not mario.obstacleR:
+                mario.floor = True
+                mario.rect.y= blocks.rect.y - 32
+            #QUESTION-----------------------------------------------------------------------------------------------
+            if str(type(blocks)) == "<class 'Brick.Question'>" \
+                    and (mario.rect.left < blocks.rect.right-5 and mario.rect.right > blocks.rect.left+5) \
+                    and mario.rect.bottom > blocks.rect.top-32\
+                    and mario.rect.top < blocks.rect.top\
+                    and not mario.obstacleL and not mario.obstacleR:
+                mario.floor = True
+                mario.rect.y= blocks.rect.y - 32
+            #INTERACTABLE-----------------------------------------------------------------------------------------------
+            if str(type(blocks)) == "<class 'Brick.Interactable'>" \
+                    and (mario.rect.left < blocks.rect.right-5 and mario.rect.right > blocks.rect.left+5) \
+                    and mario.rect.bottom > blocks.rect.top-32\
+                    and mario.rect.top < blocks.rect.top\
+                    and not mario.obstacleL and not mario.obstacleR:
+                mario.floor = True
+                mario.rect.y= blocks.rect.y - 32
+                print("its me")
+                if mario.crouching:
+                    print('crouching')
+                    change_zone(mario=mario, level=level, LEVELS=LEVELS, index=1)
+                    mario.rect.x = 100
+                    mario.rect.y = 100
+                    mario.center = mario.rect.centerx
 
-        #bounds
+            #hit===================================================================================
+            #BASIC--------------------------------------------------------------------------------
+            if str(type(blocks)) == "<class 'Brick.Basic'>"\
+                    and mario.rect.top <= blocks.rect.bottom\
+                    and (not mario.obstacleL or not mario.obstacleR)\
+                    and mario.rect.bottom > blocks.rect.bottom:
+                print("im basic")
+                mario.jump_speed = .5
+                mario.is_jumping = False
+                mario.rect.top = blocks.rect.bottom +1
+            #QUESTION--------------------------------------------------------------------------------
+            elif str(type(blocks)) == "<class 'Brick.Question'>"\
+                    and mario.rect.top <= blocks.rect.bottom\
+                    and (not mario.obstacleL and not mario.obstacleR)\
+                    and mario.rect.bottom > blocks.rect.bottom:
+                print("im question")
+                mario.jump_speed = .5
+                mario.is_jumping = False
+                mario.rect.top = blocks.rect.bottom +1
+        #bounds====================================================================================
         if mario.rect.left < 0:
             mario.obstacleL = True
             mario.rect.left = 0
+
+def check_mario_offstage(mario, level,LEVELS):
+    if mario.rect.bottom >= 470:
+        print("mario offstage")
+        reset_level(mario=mario, level=level, LEVELS=LEVELS, index=0)
+
+def change_zone(mario, level, LEVELS, index):
+    level.move_zone(mario=mario,LEVELS=LEVELS, index=index)
+    mario.rect.x = 300
+    mario.rect.y = 300
+
+def reset_level(mario, level, LEVELS, index):
+    level.reset(LEVELS[index])
+    mario.rect.x= 50
+    mario.rect.y = 200
 
 def updateLevel(level, mario):
     level.camera(mario)

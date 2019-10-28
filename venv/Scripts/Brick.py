@@ -55,3 +55,13 @@ class Floor(Brick):
         self.breakable= False
         self.items = False
         self.interactable = False
+
+class Flag(Brick):
+    def __init__(self,width, height, x,y):
+        super().__init__(width, height, x, y)
+        if REAL:
+            self.sur.set_alpha(0)
+        self.sur.fill((0,182,168))
+        self.breakable = False
+        self.items = False
+        self.interactable = False

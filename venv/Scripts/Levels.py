@@ -5,9 +5,10 @@ import Brick
 import Scoreboard
 BLACK = (0,0,0)
 CREATE = False
-SPEED = 5
+SPEED = 4
 if CREATE:
     SPEED=960
+END = True
 
 class Level():
     def __init__(self, screen):
@@ -41,8 +42,8 @@ class Level():
             for object in self.environment:
                 object.rect.left -= SPEED
 
-    def create_rects(self):
-        with open('LevelSettings.txt') as f:
+    def create_rects(self,file):
+        with open(file) as f:
             for line in f:
                 type, width, height, x,y = line.split()
                 if type == 'Obstacle':
@@ -55,7 +56,8 @@ class Level():
                     self.create_pipe(width=int(width),height=int(height),x=int(x),y=int(y))
                 if type == 'Floor':
                     self.create_floor(width=int(width),height=int(height),x=int(x),y=int(y))
-
+                if type == 'Flag':
+                    self.create_flag(width=int(width),height=int(height),x=int(x),y=int(y))
 
     def create_obstacle(self, width, height, x, y):
         box = Brick.Pipe(width, height, x, y)
@@ -77,6 +79,10 @@ class Level():
         box = Brick.Floor(width, height, x, y)
         self.environment.append(box)
 
+    def create_flag(self, width, height, x, y):
+        box = Brick.Flag(width, height, x, y)
+        self.environment.append(box)
+
     def camera(self,mario):
         if (mario.rect.x >= 480 and mario.moving_right and not mario.obstacleR):
             self.move = True
@@ -85,3 +91,15 @@ class Level():
             self.move = False
             #print("camera NOT moving")
 
+    def move_zone(self,mario,LEVELS,index):
+        self.start_x = 0
+        self.end_x = 960
+        self.start_y = 480
+        self.end_y = 950
+        self.reset(LEVELS[index])
+
+    def reset(self,file):
+        self.environment = []
+        self.create_rects(file=file)
+        self.start_x = 0
+        self.end_x=960

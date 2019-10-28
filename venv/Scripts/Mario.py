@@ -2,7 +2,7 @@ import pygame
 from pygame.sprite import Sprite
 from spritesheet import SpriteSheet
 from Timer import Timer
-
+SPEED = 4
 
 class Mario(Sprite):
     def __init__(self, screen, walk_right, walk_left):
@@ -46,6 +46,7 @@ class Mario(Sprite):
         self.obstacleR = False
 
     def blitme(self):
+        print("hello")
         if self.facing_right:
             self.screen.blit(self.right_image, self.rect)
         elif self.facing_left:
@@ -57,14 +58,14 @@ class Mario(Sprite):
         # animations for moving right and left: excludes last image in list (jump image)
         if self.moving_right and not self.is_jumping  and self.rect.x <= 480:
             if not self.obstacleR:
-                self.center += 5
+                self.center += SPEED
             if self.mario_right.frame_index() < self.mario_right.lastframe-1:
                 self.right_image = self.walk_right[self.mario_right.frame_index()]
             if self.obstacleL:
                 self.obstacleL = False
         elif self.moving_left and not self.is_jumping and self.rect.x <= 480:
             if not self.obstacleL:
-                self.center -= 5
+                self.center -= SPEED
             if self.mario_left.frame_index() < self.mario_left.lastframe-1:
                 self.left_image = self.walk_left[self.mario_left.frame_index()]
             if self.obstacleR:
@@ -77,7 +78,7 @@ class Mario(Sprite):
                 self.obstacleL = False
         elif self.moving_left and not self.is_jumping and self.rect.x >= 480:
             if not self.obstacleL:
-                self.center -= 5
+                self.center -= SPEED
             if self.mario_left.frame_index() < self.mario_left.lastframe-1:
                 self.left_image = self.walk_left[self.mario_left.frame_index()]
             if self.obstacleR:
@@ -92,11 +93,11 @@ class Mario(Sprite):
         # animation to handle "jump" case
         elif self.is_jumping and self.facing_right and self.rect.x <= 480:
             if not self.obstacleR and self.moving_right:
-                self.center += 5
+                self.center += SPEED
             self.right_image = self.walk_right[-2]
         elif self.is_jumping and self.facing_left and self.rect.x <= 480:
             if not self.obstacleL and self.moving_left:
-                self.center -= 5
+                self.center -= SPEED
             self.left_image = self.walk_left[-2]
 
         # animation to handle "jump" case when camera moving
@@ -104,22 +105,22 @@ class Mario(Sprite):
             self.right_image = self.walk_right[-2]
         elif self.is_jumping and self.facing_left and self.rect.x >= 480:
             if not self.obstacleL and self.moving_left:
-                self.center -= 5
+                self.center -= SPEED
             self.left_image = self.walk_left[-2]
 
         self.rect.y += self.jump_speed
 
         #forced gravity by ken
         if not self.is_jumping:
-            self.rect.y += 5
+            self.rect.y += 7
 
         # display crouching image
         if self.crouching and self.break_brick:
             self.crouch()
-
+        print("before" + str(self.rect))
         # Update the rect object from self.center
         self.rect.centerx = self.center
-
+        print("after" + str(self.rect))
     def crouch(self):
         """ # store objects exact position
                     self.x = float(self.rect.centerx)"""
