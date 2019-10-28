@@ -23,7 +23,7 @@ class Item(Sprite):
         self.rect.centerx = center_start
         self.rect.y = 400
 
-        self.direction = 1
+        self.direction = -1
 
         # store objects exact position
         self.center = float(self.rect.centerx)

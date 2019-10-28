@@ -71,7 +71,7 @@ mario = LittleMario(screen)
 level = Level(screen)
 level.create_rects(LEVELS[0])
 goomba = Goomba(screen=screen)
-enemies = [goomba]
+enemies = []
 mushroom = Mushroom(screen=screen)
 #flower = Flower(screen=screen)
 items = [mushroom]

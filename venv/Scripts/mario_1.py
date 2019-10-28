@@ -1,8 +1,9 @@
 import pygame
+import time
 from pygame.sprite import Sprite
 from spritesheet import SpriteSheet
 from Timer import Timer
-SPEED = 4
+
 
 class Mario(Sprite):
     def __init__(self, screen, walk_right, walk_left):
@@ -21,36 +22,27 @@ class Mario(Sprite):
         self.left_image = self.mario_left.imagerect()
         self.rect = self.right_image.get_rect()
 
-        # mario spawning location
-        self.rect.x = 100
-        self.rect.y = 300
+        self.rect.x = self.screen_rect.x + 150
+        self.rect.bottom = self.screen_rect.bottom
 
         # store objects exact position
         self.center = float(self.rect.centerx)
 
-        # flags for movement
+        # flags for movement and abilities
         self.jump_speed = 0
+        self.movement_speed = 5
+        self.slide_speed = 0
         self.moving_right = False
         self.moving_left = False
         self.facing_right = True
         self.facing_left = False
-        self.standing = True
-        self.crouching = False
         self.is_jumping = False
-
-        # flags for transitioning between different mario states
-        self.transition_timer = 0
-        self.transition_state = False
+        self.is_sliding = False
+        self.dead = False
+        self.crouching = False
         self.break_brick = False
         self.invincible = False
         self.fire = False
-        self.dead = False
-
-        #ken implementataion
-        self.floor = False
-        self.brick = False
-        self.obstacleL = False
-        self.obstacleR = False
 
     def blitme(self):
         if self.facing_right:
@@ -63,69 +55,38 @@ class Mario(Sprite):
 
         if not self.crouching:
             # animations for moving right and left: excludes last image in list (jump image)
-            if self.moving_right and not self.is_jumping  and self.rect.x <= 480:
-                if not self.obstacleR:
-                    self.center += SPEED
-                if self.mario_right.frame_index() < self.mario_right.lastframe-1:
+            if self.moving_right and self.rect.right < self.screen_rect.right and not self.is_jumping:
+                self.center += self.movement_speed
+                if self.mario_right.frame_index() < self.mario_right.lastframe - 1:
                     self.right_image = self.walk_right[self.mario_right.frame_index()]
-                if self.obstacleL:
-                    self.obstacleL = False
-            elif self.moving_left and not self.is_jumping and self.rect.x <= 480:
-                if not self.obstacleL:
-                    self.center -= SPEED
-                if self.mario_left.frame_index() < self.mario_left.lastframe-1:
-                    self.left_image = self.walk_left[self.mario_left.frame_index()]
-                if self.obstacleR:
-                    self.obstacleR = False
 
-            elif self.moving_right and not self.is_jumping  and self.rect.x >= 480:
-                if self.mario_right.frame_index() < self.mario_right.lastframe-1:
-                    self.right_image = self.walk_right[self.mario_right.frame_index()]
-                if self.obstacleL:
-                    self.obstacleL = False
-            elif self.moving_left and not self.is_jumping and self.rect.x >= 480:
-                if not self.obstacleL:
-                    self.center -= SPEED
-                if self.mario_left.frame_index() < self.mario_left.lastframe-1:
+            elif self.moving_left and self.rect.left > 0 and not self.is_jumping:
+                self.center -= self.movement_speed
+                if self.mario_left.frame_index() < self.mario_left.lastframe - 1:
                     self.left_image = self.walk_left[self.mario_left.frame_index()]
-                if self.obstacleR:
-                    self.obstacleR = False
 
             # if not moving, display standing frame
-            elif not self.moving_right and self.facing_right and not self.is_jumping:
+            elif not self.moving_right and self.facing_right and not self.is_jumping and not self.is_sliding:
                 self.right_image = self.walk_right[0]
-            elif not self.moving_left and self.facing_left and not self.is_jumping:
+            elif not self.moving_left and self.facing_left and not self.is_jumping and not self.is_sliding:
                 self.left_image = self.walk_left[0]
 
             # animation to handle "jump" case
-            elif self.is_jumping and self.facing_right and self.rect.x <= 480:
-                if not self.obstacleR and self.moving_right:
-                    self.center += SPEED
+            elif self.is_jumping and self.facing_right:
+                if self.moving_right:
+                    self.center += self.movement_speed
                 self.right_image = self.walk_right[-2]
-            elif self.is_jumping and self.facing_left and self.rect.x <= 480:
-                if not self.obstacleL and self.moving_left:
-                    self.center -= SPEED
-                self.left_image = self.walk_left[-2]
-
-            # animation to handle "jump" case when camera moving
-            elif self.is_jumping and self.facing_right and self.rect.x >= 480:
-                self.right_image = self.walk_right[-2]
-            elif self.is_jumping and self.facing_left and self.rect.x >= 480:
-                if not self.obstacleL and self.moving_left:
-                    self.center -= SPEED
+            elif self.is_jumping and self.facing_left:
+                if self.moving_left:
+                    self.center -= self.movement_speed
                 self.left_image = self.walk_left[-2]
 
             self.rect.y += self.jump_speed
-
-        #forced gravity by ken
-        if not self.is_jumping:
-            self.rect.y += 7
 
         # display crouching image
         if self.crouching and self.break_brick:
             self.crouch()
 
-        # display death image
         if self.dead:
             self.right_image = self.walk_right[-1]
             self.left_image = self.walk_left[-1]
@@ -134,32 +95,24 @@ class Mario(Sprite):
         self.rect.centerx = self.center
 
     def crouch(self):
-        # save standing image bottom position
         bottom = self.rect.bottom
         left = self.rect.x
         # get crouch image rect and set bottom to be bottom of screen
         if self.facing_right:
-            self.right_image = self.walk_right[-1]
+            image = self.walk_right[-1]
+            self.right_image = image
             self.rect = self.right_image.get_rect()
         elif self.facing_left:
-            self.left_image = self.walk_left[-1]
+            image = self.walk_left[-1]
+            self.left_image = image
             self.rect = self.left_image.get_rect()
-        self.rect.bottom = bottom
-        self.rect.x = left
-
-    def set_standing_rect(self):
-        bottom = self.rect.bottom
-        left = self.rect.x
-        self.right_image = self.walk_right[0]
-        self.rect = self.right_image.get_rect()
         self.rect.bottom = bottom
         self.rect.x = left
 
     def jump(self):
         """ Function to handle when mario jumps """
-        if self.floor:
-            self.jump_speed = -11
-            self.floor = False
+        if self.rect.bottom >= self.screen_rect.bottom or self.dead:
+            self.jump_speed = -7
 
     def gravity(self):
         """ Function to calculate and handle gravity """
@@ -168,10 +121,11 @@ class Mario(Sprite):
         else:
             self.jump_speed += .45
 
-        # mario has landed on surface
+        # live mario has landed on surface, dead mario goes past screen
         if not self.dead:
-            if self.floor and self.jump_speed >= 0:
+            if self.rect.y >= self.screen_rect.bottom - self.rect.height and self.jump_speed >= 0:
                 self.jump_speed = 0
+                self.rect.y = self.screen_rect.bottom - self.rect.height
                 self.is_jumping = False
 
     def become_big(self):
@@ -209,7 +163,7 @@ class Mario(Sprite):
         self.invincible = True
 
     def become_fire_mario(self):
-        """ Function to make Mario into fire mario """
+        """ Function to make Mario into """
         fire_mario = FireMario(screen=self.screen)
         self.fire = True
         # set frames to fire mario
@@ -231,12 +185,11 @@ class Mario(Sprite):
 
     def reset_level(self):
         """ Function to reset Mario's position upon new level"""
-        # time.sleep(1.0)
+        #time.sleep(1.0)
         self.dead = False
-        self.rect.x = 100
-        self.rect.y = 300
+        self.rect.x = self.screen_rect.x + 150
+        self.rect.bottom = self.screen_rect.bottom
         self.center = float(self.rect.centerx)
-
 
 class LittleMario(Mario):
     """ Class to define little/default Mario """
@@ -246,18 +199,18 @@ class LittleMario(Mario):
         self.walk_left = []
 
         # load right-facing images
-        sprite_sheet = SpriteSheet("Images/mario.png")
-        image = pygame.transform.scale(sprite_sheet.get_image(210, 0, 15, 16), (32, 32)) # stand right [0]
+        sprite_sheet = SpriteSheet("images/mario.png")
+        image = pygame.transform.scale(sprite_sheet.get_image(210, 0, 15, 16), (32, 32))
         self.walk_right.append(image)
-        image = pygame.transform.scale(sprite_sheet.get_image(240, 0, 15, 16), (32, 32)) # walk right [1]
+        image = pygame.transform.scale(sprite_sheet.get_image(240, 0, 15, 16), (32, 32))
         self.walk_right.append(image)
-        image = pygame.transform.scale(sprite_sheet.get_image(270, 0, 15, 16), (32, 32)) # walk right [2]
+        image = pygame.transform.scale(sprite_sheet.get_image(270, 0, 15, 16), (32, 32))
         self.walk_right.append(image)
-        image = pygame.transform.scale(sprite_sheet.get_image(300, 0, 15, 16), (32, 32)) # walk right [3]
+        image = pygame.transform.scale(sprite_sheet.get_image(300, 0, 15, 16), (32, 32))
         self.walk_right.append(image)
-        image = pygame.transform.scale(sprite_sheet.get_image(360, 0, 15, 16), (32, 32)) # jump [4]
+        image = pygame.transform.scale(sprite_sheet.get_image(360, 0, 15, 16), (32, 32)) # jump
         self.walk_right.append(image)
-        image = pygame.transform.scale(sprite_sheet.get_image(390, 16, 15, 14), (32, 32)) # dead_jump [5]
+        image = pygame.transform.scale(sprite_sheet.get_image(390, 16, 15, 14), (32, 32)) # dead
         self.walk_right.append(image)
 
         # load left-facing images
@@ -275,18 +228,20 @@ class SuperMario(Mario):
         self.walk_left = []
 
         # load right-facing images
-        sprite_sheet = SpriteSheet("Images/mario.png")
-        image = pygame.transform.scale(sprite_sheet.get_image(210, 52, 16, 32), (32, 64)) # stand right [0]
+        sprite_sheet = SpriteSheet("images/mario.png")
+        image = pygame.transform.scale(sprite_sheet.get_image(210, 52, 16, 32), (32, 64))
         self.walk_right.append(image)
-        image = pygame.transform.scale(sprite_sheet.get_image(240, 52, 16, 32), (32, 64)) # walk right [1]
+        image = pygame.transform.scale(sprite_sheet.get_image(240, 52, 16, 32), (32, 64))
         self.walk_right.append(image)
-        image = pygame.transform.scale(sprite_sheet.get_image(270, 52, 16, 32), (32, 64)) # walk right [2]
+        image = pygame.transform.scale(sprite_sheet.get_image(270, 52, 16, 32), (32, 64))
         self.walk_right.append(image)
-        image = pygame.transform.scale(sprite_sheet.get_image(300, 52, 16, 32), (32, 64)) # walk right [3]
+        image = pygame.transform.scale(sprite_sheet.get_image(300, 52, 16, 32), (32, 64))
         self.walk_right.append(image)
-        image = pygame.transform.scale(sprite_sheet.get_image(360, 52, 16, 32), (32, 64)) # jump [4]
+        # jump image walk_right[-2]
+        image = pygame.transform.scale(sprite_sheet.get_image(360, 52, 16, 32), (32, 64))
         self.walk_right.append(image)
-        image = pygame.transform.scale(sprite_sheet.get_image(390, 52, 16, 27), (32, 54)) # crouch [5]
+        # crouch image walk_right[-1]
+        image = pygame.transform.scale(sprite_sheet.get_image(390, 52, 16, 27), (32, 54))
         self.walk_right.append(image)
 
         # load left-facing images
@@ -304,19 +259,21 @@ class FireMario(Mario):
 
         # load right-facing images
         sprite_sheet = SpriteSheet("images/mario.png")
-        image = pygame.transform.scale(sprite_sheet.get_image(209, 122, 16, 32), (32, 64)) # stand [0]
+        image = pygame.transform.scale(sprite_sheet.get_image(209, 122, 16, 32), (32, 64))
         self.walk_right.append(image)
-        image = pygame.transform.scale(sprite_sheet.get_image(237, 122, 16, 32), (32, 64)) # walk right[1]
+        image = pygame.transform.scale(sprite_sheet.get_image(237, 122, 16, 32), (32, 64))
         self.walk_right.append(image)
-        image = pygame.transform.scale(sprite_sheet.get_image(263, 122, 16, 32), (32, 64)) # walk right[2]
+        image = pygame.transform.scale(sprite_sheet.get_image(263, 122, 16, 32), (32, 64))
         self.walk_right.append(image)
-        image = pygame.transform.scale(sprite_sheet.get_image(287, 122, 16, 32), (32, 64)) # walk right [3]
+        image = pygame.transform.scale(sprite_sheet.get_image(287, 122, 16, 32), (32, 64))
         self.walk_right.append(image)
-        image = pygame.transform.scale(sprite_sheet.get_image(312, 122, 16, 32), (32, 64)) # walk right [4]
+        # jump image walk_right[-2]
+        image = pygame.transform.scale(sprite_sheet.get_image(312, 122, 16, 32), (32, 64))
         self.walk_right.append(image)
-        image = pygame.transform.scale(sprite_sheet.get_image(362, 122, 16, 27), (32, 54)) # jump [5]
+        # crouch image walk_right[-1]
+        image = pygame.transform.scale(sprite_sheet.get_image(362, 122, 16, 27), (32, 54))
         self.walk_right.append(image)
-        image = pygame.transform.scale(sprite_sheet.get_image(389, 126, 16, 22), (32, 54)) # crouch [6]
+        image = pygame.transform.scale(sprite_sheet.get_image(389, 126, 16, 22), (32, 54))
         self.walk_right.append(image)
 
         # load left-facing images

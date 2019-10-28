@@ -56,7 +56,7 @@ def check_keyup(event, mario):
         mario.is_jumping = True
     elif event.key == pygame.K_DOWN or event.key == K_s:
         mario.crouching = False
-
+        mario.set_standing_rect()
 
 def check_mario_enemy_collision(screen, mario, enemies):
     for enemy in enemies:
@@ -76,11 +76,6 @@ def check_mario_enemy_collision(screen, mario, enemies):
                 else:
                     mario.death_animation()
 
-    # if mario is ever below the screen height, reset, the level
-    if mario.rect.top >= Constants.WINDOW_HEIGHT:
-        enemies.clear()
-        create_goomba(screen=screen,enemies=enemies)
-        mario.reset_level()
 
 def check_mario_item_collision(screen, mario, items):
     for item in items:
@@ -107,6 +102,8 @@ def check_collisiontype(level, mario, LEVELS):
                     mario.floor=True
                     if not mario.break_brick:
                         mario.rect.y = blocks.rect.y - 32
+                    elif mario.break_brick and mario.crouching:
+                        mario.rect.y = blocks.rect.y - 54
                     else:
                         mario.rect.y = blocks.rect.y - 64
 
@@ -220,7 +217,8 @@ def check_collisiontype(level, mario, LEVELS):
                 mario.floor = True
                 if not mario.break_brick:
                     mario.rect.y= blocks.rect.y - 32
-
+                elif mario.break_brick and mario.crouching:
+                    mario.rect.y = blocks.rect.y - 54
                 else:
                     mario.rect.y = blocks.rect.y - 64
             #BASIC-----------------------------------------------------------------------------------------------
@@ -232,9 +230,11 @@ def check_collisiontype(level, mario, LEVELS):
                 mario.floor = True
                 if not mario.break_brick:
                     mario.rect.y = blocks.rect.y - 32
-
+                elif mario.break_brick and mario.crouching:
+                    mario.rect.y = blocks.rect.y - 54
                 else:
-                    mario.rect.y = blocks.rect.y - 64            #QUESTION-----------------------------------------------------------------------------------------------
+                    mario.rect.y = blocks.rect.y - 64
+            #QUESTION-----------------------------------------------------------------------------------------------
             if str(type(blocks)) == "<class 'Brick.Question'>" \
                     and (mario.rect.left < blocks.rect.right-5 and mario.rect.right > blocks.rect.left+5) \
                     and mario.rect.bottom > blocks.rect.top-32\
@@ -243,9 +243,11 @@ def check_collisiontype(level, mario, LEVELS):
                 mario.floor = True
                 if not mario.break_brick:
                     mario.rect.y = blocks.rect.y - 32
-
+                elif mario.break_brick and mario.crouching:
+                    mario.rect.y = blocks.rect.y - 54
                 else:
-                    mario.rect.y = blocks.rect.y - 64            #INTERACTABLE-----------------------------------------------------------------------------------------------
+                    mario.rect.y = blocks.rect.y - 64
+            #INTERACTABLE-----------------------------------------------------------------------------------------------
             if str(type(blocks)) == "<class 'Brick.Interactable'>" \
                     and (mario.rect.left < blocks.rect.right-5 and mario.rect.right > blocks.rect.left+5) \
                     and mario.rect.bottom > blocks.rect.top-32\
