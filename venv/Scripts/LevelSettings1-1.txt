@@ -1,0 +1,6 @@
+Floor 514 50 0 412
+Obstacle 34 368 0 44
+Obstacle 224 32 130 44
+Obstacle 224 100 130 312
+Obstacle 34 300 480 44
+Pipe 96 68 418 344
