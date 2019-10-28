@@ -38,12 +38,10 @@ def check_keydown(event, screen, mario, fireballs):
             mario.is_jumping = True
             mario.jump()
         elif event.key == pygame.K_DOWN or event.key == K_s:
-            if mario.break_brick:
-                mario.crouching = True
+            mario.crouching = True
         elif pygame.key.get_mods() == pygame.KMOD_LSHIFT:
             if mario.fire:
                 throw_fireball(screen=screen, mario=mario, fireballs = fireballs)
-
     if event.key == pygame.K_q:
         sys.exit()
 
@@ -258,7 +256,7 @@ def check_collisiontype(level, mario, LEVELS):
                     mario.rect.y = blocks.rect.y - 32
 
                 else:
-                    mario.rect.y = blocks.rect.y - 64                
+                    mario.rect.y = blocks.rect.y - 64
                     print("its me")
                 if mario.crouching:
                     print('crouching')
