@@ -38,7 +38,8 @@ def check_keydown(event, screen, mario, fireballs):
             mario.is_jumping = True
             mario.jump()
         elif event.key == pygame.K_DOWN or event.key == K_s:
-            mario.crouching = True
+            if not mario.is_jumping:
+                mario.crouching = True
         elif pygame.key.get_mods() == pygame.KMOD_LSHIFT:
             if mario.fire:
                 throw_fireball(screen=screen, mario=mario, fireballs = fireballs)
@@ -60,7 +61,6 @@ def check_keyup(event, mario):
 
 def check_mario_enemy_collision(screen, mario, enemies):
     for enemy in enemies:
-        #if pygame.sprite.collide_rect(mario, enemy):
         if mario.rect.colliderect(enemy) and not mario.dead:
             # base statement, if mario jumps on top of enemy, kills them
             if enemy.rect.top - 5 <= mario.rect.bottom <= enemy.rect.top + 5:
@@ -93,7 +93,7 @@ def create_goomba(screen, enemies):
     goomba = Goomba(screen=screen)
     enemies.append(goomba)
 
-def check_collisiontype(level, mario, LEVELS):
+def check_collisiontype(level, mario, LEVELS, fireballs):
     for blocks in level.environment:
         if (pygame.sprite.collide_rect(mario, blocks)):
             #floor==========================================================================================
@@ -291,6 +291,25 @@ def check_collisiontype(level, mario, LEVELS):
             mario.obstacleL = True
             mario.rect.left = 0
 
+        # fireball handling with environment=======================================================
+        for fireball in fireballs:
+            if (pygame.sprite.collide_rect(fireball, blocks)):
+                # change y-direction if interaction with floor brick
+                if str(type(blocks)) == "<class 'Brick.Floor'>" and fireball.rect.bottom >= blocks.rect.top:
+                    fireball.y_position = blocks.rect.y - 16
+                    fireball.rect.y = fireball.y_position
+                    fireball.y_velocity *= -1
+                else:
+                    fireball.explode()
+
+def check_fireball_enemy_collision(fireballs, enemies):
+    for enemy in enemies:
+        for fireball in fireballs:
+            if fireball.rect.colliderect(enemy):
+                fireball.explode()
+                enemies.remove(enemy)
+
+
 def check_mario_offstage(mario, level,LEVELS):
     if mario.rect.bottom >= 470:
         print("mario offstage")
@@ -309,7 +328,6 @@ def reset_level(mario, level, LEVELS, index):
 
 def throw_fireball(screen, mario, fireballs):
     """ Throw fireball """
-
     # Create a new fireball and add it to the fireball group
     if len(fireballs) < Constants.fireballs_allowed:
         new_fireball = Fireball(screen=screen, mario=mario)
@@ -333,14 +351,16 @@ def update_items(items):
     for item in items:
         item.update()
 
-def update_fireballs(fireballs):
+def update_fireballs(fireballs, level, enemies):
     """ Update position of fireball and remove those outside of frame """
-    fireballs.update()
+    fireballs.update(level, fireballs)
 
     # Get rid of bullets that have disappeared
     for fireball in fireballs.copy():
         if fireball.rect.left >= Constants.WINDOW_WIDTH or fireball.rect.right <= 0:
             fireballs.remove(fireball)
+
+    check_fireball_enemy_collision(fireballs=fireballs, enemies=enemies)
 
 def update_screen(screen, mario, level, sb, enemies, items, fireballs):
     level.blitme()

@@ -39,7 +39,6 @@ class Mario(Sprite):
         self.is_jumping = False
 
         # flags for transitioning between different mario states
-        self.transition_timer = 0
         self.transition_state = False
         self.break_brick = False
         self.invincible = False

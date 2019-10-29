@@ -9,4 +9,4 @@ lives_limit = 3
 time_left = 400
 
 fireballs_allowed = 3
-fireball_speed = 5
+fireball_speed = 10

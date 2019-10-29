@@ -45,6 +45,7 @@ class Level():
             for object in self.environment:
                 object.rect.left -= SPEED
 
+
     def create_rects(self, file):
         with open(file) as f:
             for line in f:
@@ -89,10 +90,8 @@ class Level():
     def camera(self, mario):
         if (mario.rect.x >= 480 and mario.moving_right and not mario.obstacleR):
             self.move = True
-            # print("camera moving")
         else:
             self.move = False
-            # print("camera NOT moving")
 
     def move_zone(self, mario, LEVELS, index):
         self.start_x = 0

@@ -1,5 +1,5 @@
 import pygame
-REAL = False
+REAL = True
 
 
 class Brick():
