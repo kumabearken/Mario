@@ -98,20 +98,25 @@ class Level():
             self.move = False
             #print("camera NOT moving")
 
-    def move_zone(self,mario,LEVELS,index, settings):
+    def move_zone(self,mario,LEVELS,index, settings,items):
         self.reset(LEVELS[index])
         if (settings == 1):
             self.start_x = 0
             self.end_x = SCREENX
             self.start_y = 480
             self.end_y = 950
+
+
         elif (settings == 2):
             self.start_x = SCREENX * 5
             self.end_x = SCREENX * 6
             self.start_y = 0
             self.end_y = SCREENY
+            items[:]=[]
             for objects in self.environment:
                 objects.rect.x -= SCREENX * 5
+
+
     def reset(self,file):
         self.environment = []
         self.create_rects(file=file)

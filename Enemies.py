@@ -3,19 +3,31 @@ from pygame.sprite import Sprite
 from spritesheet import SpriteSheet
 from Timer import Timer
 
-class Items(Sprite):
-    def __init__(self,screen):
-        super().__init__()
-        self.screen=screen
-        self.floor=False
-        self.obstacleR=False
-        self.obstacleL=False
+
+class Enemy(Sprite):
+    def __init__(self, screen):
+        super(Enemy, self).__init__()
+
+        # get screen dimensions
+        self.screen = screen
+        self.screen_rect = self.screen.get_rect()
+
+        self.rect.centerx = self.screen_rect.centerx
+        self.rect.y = 380
+        # store objects exact position
+        self.x = float(self.rect.centerx)
+
+        # movement flags
+        self.moving_left = False
+        self.moving_right = False
+
         self.speedx = 2
         self.speedy = 4
 
-    def blitme(self):
-        self.screen.blit(self.image, self.rect)
-        
+        self.floor=False
+        self.obstacleR=False
+        self.obstacleL=False
+
     def check_collisions(self, level):
         for blocks in level.environment:
             if (pygame.sprite.collide_rect(self, blocks)):
@@ -164,49 +176,105 @@ class Items(Sprite):
                 self.obstacleL = True
                 self.rect.left = -32
 
-class Mushroom(Items):
-    def __init__(self,screen):
+
+
+class Goomba(Enemy):
+    """ Class to define Goomba """
+    def __init__(self, screen):
+        sprite_sheet = SpriteSheet("images/enemies.png")
+        self.goombas = []
+        image = pygame.transform.scale(sprite_sheet.get_image(0, 4, 16, 16), (32, 32))
+        self.goombas.append(image)
+        image = pygame.transform.scale(sprite_sheet.get_image(30, 4, 16, 16), (32, 32))
+        self.goombas.append(image)
+        self.walk_list = self.goombas
+
+        # Timer class to animate sprites
+        self.animation = Timer(frames=self.walk_list)
+
+        # get the rect of the image
+        self.image = self.animation.imagerect()
+        self.rect = self.image.get_rect()
+
+        # next image for squished goomba
+        # list to hold animation images
+        """image = pygame.transform.scale(sprite_sheet.get_image(60, 5, 16, 16), (30, 30))
+        self.goombas.append(image)"""
         super().__init__(screen=screen)
-        sprite_sheet = SpriteSheet("Images/items.png")
-        self.image = pygame.transform.scale(sprite_sheet.get_image(184,34,16,16), (32, 32))
-        self.rect =self.image.get_rect()
 
     def update(self,level):
-        self.rect.right +=self.speedx
-        self.rect.bottom +=self.speedy
+        self.rect.right+= self.speedx
+        self.rect.bottom += self.speedy
         if (level.move):
-            self.rect.right -= 3
+            self.rect.right -= 4
         self.check_collisions(level=level)
+        self.image = self.walk_list[self.animation.frame_index()]
 
-class Flower(Items):
-    def __init__(self,screen):
+    def blitme(self):
+        self.screen.blit(self.image, self.rect)
+
+class RegularKoopa(Enemy):
+    def __init__(self, screen):
+        sprite_sheet = SpriteSheet("Images/enemies.png")
+        self.koopas_left = []
+        self.koopas_right = []
+        self.koopas_shell = []
+
+        # shell flag
+        self.shell_mode = False
+        self.shell_mode_moving = False
+
+        self.brick = False
+
+        imageRight = pygame.transform.scale(sprite_sheet.get_image(210, 0, 19, 25), (32, 32))
+        self.koopas_right.append(imageRight)
+        imageRight = pygame.transform.scale(sprite_sheet.get_image(240, 0, 19, 25), (32, 32))
+        self.koopas_right.append(imageRight)
+        imageLeft = pygame.transform.scale(sprite_sheet.get_image(179, 0, 19, 25), (32, 32))
+        self.koopas_left.append(imageLeft)
+        imageLeft = pygame.transform.scale(sprite_sheet.get_image(149, 0, 19, 25), (32, 32))
+        self.koopas_left.append(imageLeft)
+        imageShell = pygame.transform.scale(sprite_sheet.get_image(360, 0, 19, 25), (32, 32))
+        self.koopas_shell.append(imageShell)
+        imageShell = pygame.transform.scale(sprite_sheet.get_image(360, 0, 19, 25), (32, 32))
+        self.koopas_shell.append(imageShell)
+
+        # Timer class to animate sprites
+        self.animation = Timer(frames=self.koopas_left)
+
+        # get the rect of the image
+        self.imageLeft = self.animation.imagerect()
+        self.imageRight = self.animation.imagerect()
+        self.imageShell = self.animation.imagerect()
+        self.rect = self.imageLeft.get_rect()
+        self.rect = self.imageRight.get_rect()
+        self.rect = self.imageShell.get_rect()
+
         super().__init__(screen=screen)
-        sprite_sheet = SpriteSheet("Images/items.png")
-        self.image = pygame.transform.scale(sprite_sheet.get_image(0,64,20,16), (32,32))
-        self.rect =self.image.get_rect()
+        self.rect.x = 400
+        self.rect.y = 300
+
+    def blitme(self):
+        if self.moving_left:
+            self.screen.blit(self.imageLeft, self.rect)
+        if self.moving_right:
+            self.screen.blit(self.imageRight, self.rect)
+        # TODO: handle blitme when the koopa is in shell mode
+        if self.shell_mode:
+            self.screen.blit(self.imageShell, self.rect)
+        if self.shell_mode_moving:
+            self.screen.blit(self.imageShell, self.rect)
+        print("im koopa")
 
     def update(self,level):
+        self.rect.right+= self.speedx
+        self.rect.bottom += self.speedy
         if (level.move):
             self.rect.right -= 4
-
-class Coin(Items):
-    def __init__(self,screen):
-        super().__init__(screen=screen)
-        sprite_sheet = SpriteSheet("Images/items-objects.png")
-        self.image = pygame.transform.scale(sprite_sheet.get_image(0,80,16,16), (32,32))
-        self.rect =self.image.get_rect()
-
-    def update(self,level):
-        if (level.move):
-            self.rect.right -= 4
-
-class Star(Items):
-    def __init__(self,screen):
-        super().__init__(screen=screen)
-        sprite_sheet = SpriteSheet("Images/items-objects.png")
-        self.image = pygame.transform.scale(sprite_sheet.get_image(0,48,16,16), (32,32))
-        self.rect =self.image.get_rect()
-
-    def update(self,level):
-        if (level.move):
-            self.rect.right -= 4
+        self.check_collisions(level=level)
+        if self.moving_left:
+            self.imageLeft = self.koopas_left[self.animation.frame_index()]
+        if self.moving_right:
+            self.imageRight = self.koopas_right[self.animation.frame_index()]
+        if self.shell_mode or self.shell_mode_moving:
+            self.imageShell = self.koopas_shell[self.animation.frame_index()]

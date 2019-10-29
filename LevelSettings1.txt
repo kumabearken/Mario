@@ -2,9 +2,9 @@ Floor 960 50 0 418 0
 Obstacle 64 64 896 354 0
 Question 32 32 512 284 1
 Destructable 32 32 640 284 0
-Question 32 32 672 284 1
+Question 32 32 672 284 2
 Destructable 32 32 704 284 0
-Question 32 32 736 284 1
+Question 32 32 736 284 2
 Destructable 32 32 768 284 0
 Question 32 32 704 150 1
 Floor 960 50 960 418 0

@@ -1,5 +1,5 @@
 import pygame
-import constants
+import Constants
 
 
 class SpriteSheet(object):
@@ -12,7 +12,7 @@ class SpriteSheet(object):
     def get_image(self, x, y, width, height):
         """ Grabs one image from sprite sheet """
         image = pygame.Surface([width, height], pygame.SRCALPHA).convert()
-        image.set_colorkey(constants.BLACK, pygame.RLEACCEL)
+        image.set_colorkey(Constants.BLACK, pygame.RLEACCEL)
         image.set_alpha(255)
         image.blit(self.sprite_sheet, (0, 0), (x, y, width, height))
         return image

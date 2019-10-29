@@ -1,62 +1,72 @@
 import pygame, sys
-import constants
+import time
+import Constants
 from pygame.locals import *
 from Timer import Timer
+from Mario import *
+from Enemies import *
 from Items import *
+from Fireball import Fireball
+from pygame.sprite import Group
 
-def check_events(mario, screen):
+def check_events(mario, screen, fireballs):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
         elif event.type == pygame.KEYDOWN:
-            check_keydown(event=event, mario=mario)
+            check_keydown(event=event, screen=screen, mario=mario, fireballs=fireballs)
         elif event.type == pygame.KEYUP:
             check_keyup(event=event, mario=mario)
 
 
-def check_keydown(event, mario):
+def check_keydown(event, screen, mario, fireballs):
     """ Respond to keypresses  """
     # Movement flags set to true
-    if event.key == pygame.K_RIGHT or event.key == K_d:
-        mario.moving_right = True
-        mario.facing_right = True
-        mario.facing_left = False
-    elif event.key == pygame.K_LEFT or event.key == K_a:
-        mario.moving_left = True
-        mario.facing_left = True
-        mario.facing_right = False
-    elif event.key == pygame.K_UP or event.key == K_w or event.key == pygame.K_SPACE:
-        mario.is_jumping = True
-        mario.jump()
-    elif event.key == pygame.K_DOWN or event.key == K_s:
-        mario.crouching = True
-    elif event.key == pygame.K_q:
+    if not mario.dead:
+        if event.key == pygame.K_RIGHT or event.key == K_d:
+            mario.moving_right = True
+            mario.facing_right = True
+            mario.facing_left = False
+            mario.moving_left = False
+        elif event.key == pygame.K_LEFT or event.key == K_a:
+            mario.moving_left = True
+            mario.facing_left = True
+            mario.facing_right = False
+            mario.moving_right = False
+        elif event.key == pygame.K_UP or event.key == K_w or event.key == pygame.K_SPACE:
+            mario.is_jumping = True
+            mario.jump()
+        elif event.key == pygame.K_DOWN or event.key == K_s:
+            if not mario.is_jumping:
+                mario.crouching = True
+        elif pygame.key.get_mods() == pygame.KMOD_LSHIFT:
+            if mario.fire:
+                throw_fireball(screen=screen, mario=mario, fireballs = fireballs)
+    if event.key == pygame.K_q:
         sys.exit()
-
 
 def check_keyup(event, mario):
     """ Respond to key releases """
     if event.key == pygame.K_RIGHT or event.key == K_d:
         mario.moving_right = False
-        mario.facing_right = True
     elif event.key == pygame.K_LEFT or event.key == K_a:
         mario.moving_left = False
-        mario.facing_left = True
     elif event.key == pygame.K_UP or event.key == K_w or event.key == pygame.K_SPACE:
         mario.is_jumping = True
     elif event.key == pygame.K_DOWN or event.key == K_s:
         mario.crouching = False
+        mario.set_standing_rect()
 
 
 def check_mario_enemy_collision(screen, mario, enemies):
     for enemy in enemies:
-        #if pygame.sprite.collide_rect(mario, enemy):
-        if mario.rect.colliderect(enemy):
+        if mario.rect.colliderect(enemy) and not mario.dead:
             # base statement, if mario jumps on top of enemy, kills them
             if enemy.rect.top - 5 <= mario.rect.bottom <= enemy.rect.top + 5:
+                print("hit")
                 enemies.remove(enemy)
-            # mario touches enemy
+            # mario touches enemy and dies
             elif mario.rect.right >= enemy.rect.left and not mario.invincible:
                 if mario.break_brick:
                     mario.become_small()
@@ -65,15 +75,16 @@ def check_mario_enemy_collision(screen, mario, enemies):
                 # reset to beginning of level
                 else:
                     mario.death_animation()
-                    enemies.clear()
-                    create_goomba(screen=screen,enemies=enemies)
-                    mario.reset_level()
 
 def check_mario_item_collision(screen, mario, items):
     for item in items:
         if pygame.sprite.collide_rect(mario, item):
-            # make little mario into super mario
-            mario.become_big()
+            if type(item) is Mushroom:
+                # make little mario into super mario
+                mario.become_big()
+            elif type(item) is Flower:
+                # make super mario into Fire Mario
+                mario.become_fire_mario()
             items.remove(item)
 
 def create_goomba(screen, enemies):
@@ -81,14 +92,18 @@ def create_goomba(screen, enemies):
     goomba = Goomba(screen=screen)
     enemies.append(goomba)
 
-def check_collisiontype(level, mario, LEVELS, items, screen):
+def check_collisiontype(level, mario, LEVELS, items, screen,fireballs):
     for blocks in level.environment:
         if (pygame.sprite.collide_rect(mario, blocks)):
             #floor==========================================================================================
             if str(type(blocks)) == "<class 'Brick.Floor'>" and mario.rect.bottom >= blocks.rect.top:
                 mario.floor=True
-                mario.rect.y= blocks.rect.y - 64
-
+                if not mario.break_brick:
+                    mario.rect.y = blocks.rect.y - 32
+                elif mario.break_brick and mario.crouching:
+                    mario.rect.y = blocks.rect.y - 54
+                else:
+                    mario.rect.y = blocks.rect.y - 64
             #sides===========================================================================================
             #PIPE-------------------------------------------------------------------------------------------
             if str(type(blocks)) == "<class 'Brick.Pipe'>" \
@@ -187,7 +202,7 @@ def check_collisiontype(level, mario, LEVELS, items, screen):
                         and mario.rect.left < blocks.rect.left:
                     mario.rect.right = blocks.rect.left -1
                     mario.obstacleR = True
-                    change_zone(mario=mario,level=level,LEVELS=LEVELS,index=0, settings=2)
+                    change_zone(mario=mario,level=level,LEVELS=LEVELS,index=0, settings=2, screen=screen,items=items)
                     print("culprit 2")
                 else:
                     mario.obstacleR = False
@@ -220,7 +235,12 @@ def check_collisiontype(level, mario, LEVELS, items, screen):
                     and mario.rect.bottom > blocks.rect.top-32\
                     and not mario.obstacleL and not mario.obstacleR:
                 mario.floor = True
-                mario.rect.y= blocks.rect.y - 32
+                if not mario.break_brick:
+                    mario.rect.y = blocks.rect.y - 32
+                elif mario.break_brick and mario.crouching:
+                    mario.rect.y = blocks.rect.y - 54
+                else:
+                    mario.rect.y = blocks.rect.y - 64
             #BASIC-----------------------------------------------------------------------------------------------
             if str(type(blocks)) == "<class 'Brick.Basic'>" \
                     and (mario.rect.left < blocks.rect.right-5 and mario.rect.right > blocks.rect.left+5) \
@@ -228,7 +248,12 @@ def check_collisiontype(level, mario, LEVELS, items, screen):
                     and mario.rect.top < blocks.rect.top \
                     and not mario.obstacleL and not mario.obstacleR:
                 mario.floor = True
-                mario.rect.y= blocks.rect.y - 32
+                if not mario.break_brick:
+                    mario.rect.y = blocks.rect.y - 32
+                elif mario.break_brick and mario.crouching:
+                    mario.rect.y = blocks.rect.y - 54
+                else:
+                    mario.rect.y = blocks.rect.y - 64
             #QUESTION-----------------------------------------------------------------------------------------------
             if str(type(blocks)) == "<class 'Brick.Question'>" \
                     and (mario.rect.left < blocks.rect.right-5 and mario.rect.right > blocks.rect.left+5) \
@@ -236,7 +261,12 @@ def check_collisiontype(level, mario, LEVELS, items, screen):
                     and mario.rect.top < blocks.rect.top\
                     and not mario.obstacleL and not mario.obstacleR:
                 mario.floor = True
-                mario.rect.y= blocks.rect.y - 32
+                if not mario.break_brick:
+                    mario.rect.y = blocks.rect.y - 32
+                elif mario.break_brick and mario.crouching:
+                    mario.rect.y = blocks.rect.y - 54
+                else:
+                    mario.rect.y = blocks.rect.y - 64
             #INTERACTABLEV-----------------------------------------------------------------------------------------------
             if str(type(blocks)) == "<class 'Brick.InteractableV'>" \
                     and (mario.rect.left < blocks.rect.right-5 and mario.rect.right > blocks.rect.left+5) \
@@ -244,11 +274,15 @@ def check_collisiontype(level, mario, LEVELS, items, screen):
                     and mario.rect.top < blocks.rect.top\
                     and not mario.obstacleL and not mario.obstacleR:
                 mario.floor = True
-                mario.rect.y= blocks.rect.y - 32
-                print("its me")
+                if not mario.break_brick:
+                    mario.rect.y = blocks.rect.y - 32
+                elif mario.break_brick and mario.crouching:
+                    mario.rect.y = blocks.rect.y - 54
+                else:
+                    mario.rect.y = blocks.rect.y - 64
                 if mario.crouching:
                     print('crouching')
-                    change_zone(mario=mario, level=level, LEVELS=LEVELS, index=1, settings=1)
+                    change_zone(mario=mario, level=level, LEVELS=LEVELS, index=1, settings=1, screen=screen, items=items)
                     mario.rect.x = 100
                     mario.rect.y = 100
                     mario.center = mario.rect.centerx
@@ -259,7 +293,12 @@ def check_collisiontype(level, mario, LEVELS, items, screen):
                     and mario.rect.top < blocks.rect.top\
                     and not mario.obstacleL and not mario.obstacleR:
                 mario.floor = True
-                mario.rect.y= blocks.rect.y - 32
+                if not mario.break_brick:
+                    mario.rect.y = blocks.rect.y - 32
+                elif mario.break_brick and mario.crouching:
+                    mario.rect.y = blocks.rect.y - 54
+                else:
+                    mario.rect.y = blocks.rect.y - 64
             #hit===================================================================================
             #BASIC--------------------------------------------------------------------------------
             if str(type(blocks)) == "<class 'Brick.Basic'>"\
@@ -290,16 +329,46 @@ def check_collisiontype(level, mario, LEVELS, items, screen):
         if mario.rect.left < 0:
             mario.obstacleL = True
             mario.rect.left = 0
+        # fireball handling with environment=======================================================
+        for fireball in fireballs:
+            if (pygame.sprite.collide_rect(fireball, blocks)):
+                # change y-direction if interaction with floor brick
+                if str(type(blocks)) == "<class 'Brick.Floor'>" and fireball.rect.bottom >= blocks.rect.top:
+                    fireball.y_position = blocks.rect.y - 16
+                    fireball.rect.y = fireball.y_position
+                    fireball.y_velocity *= -1
+                else:
+                    fireball.explode()
+
+def check_fireball_enemy_collision(fireballs, enemies):
+    for enemy in enemies:
+        for fireball in fireballs:
+            if fireball.rect.colliderect(enemy):
+                fireball.explode()
+                enemies.remove(enemy)
 
 def check_mario_offstage(mario, level,LEVELS):
     if mario.rect.bottom >= 470:
         print("mario offstage")
         reset_level(mario=mario, level=level, LEVELS=LEVELS, index=0)
 
-def change_zone(mario, level, LEVELS, index, settings):
-    level.move_zone(mario=mario,LEVELS=LEVELS, index=index, settings=settings)
+def change_zone(mario, level, LEVELS, index, settings, screen,items):
+    level.move_zone(mario=mario,LEVELS=LEVELS, index=index, settings=settings,items=items)
+    if settings == 1:
+        file = "Coins.txt"
+        create_coins(screen=screen, file=file, items=items)
+        print("hello")
     mario.rect.x = 300
     mario.rect.y = 300
+
+def create_coins(file,screen,items):
+    with open(file) as f:
+        for line in f:
+            x,y =line.split()
+            current = Coin(screen)
+            current.rect.x = int(x)
+            current.rect.y = int(y)
+            items.append(current)
 
 def create_item(items,screen,block,item_type,mario):
     if item_type == 1:
@@ -307,6 +376,8 @@ def create_item(items,screen,block,item_type,mario):
             item = Mushroom(screen)
         else:
             item = Flower(screen)
+    if item_type == 2:
+        item = Coin(screen)
 
     item.rect.bottom = block.rect.top -1
     item.rect.left = block.rect.left
@@ -315,29 +386,55 @@ def create_item(items,screen,block,item_type,mario):
 
 def reset_level(mario, level, LEVELS, index):
     level.reset(LEVELS[index])
+    mario.dead = False
     mario.rect.x= 50
     mario.rect.y = 200
+
+def throw_fireball(screen, mario, fireballs):
+    """ Throw fireball """
+    # Create a new fireball and add it to the fireball group
+    if len(fireballs) < Constants.fireballs_allowed:
+        new_fireball = Fireball(screen=screen, mario=mario)
+        fireballs.add(new_fireball)
 
 def updateLevel(level, mario):
     level.camera(mario)
     level.update()
 
-def update_mario(mario):
+def update_mario(screen, mario, enemies, items):
     mario.update()
-def update_items(items):
-    items.update
-def update_enemies(enemies):
+
+    check_mario_item_collision(screen=screen, mario=mario, items=items)
+    check_mario_enemy_collision(screen=screen, mario=mario, enemies=enemies)
+
+def update_enemies(enemies,level):
     for enemy in enemies:
-        enemy.update()
+        enemy.update(level=level)
 
 def update_item(items,level):
     for item in items:
         item.update(level=level)
 
-def update_screen(screen, mario, level, items):
-    screen.fill(constants.bg_color)
+def update_fireballs(fireballs, level, enemies):
+    """ Update position of fireball and remove those outside of frame """
+    fireballs.update(level, fireballs)
+
+    # Get rid of bullets that have disappeared
+    for fireball in fireballs.copy():
+        if fireball.rect.left >= Constants.WINDOW_WIDTH or fireball.rect.right <= 0:
+            fireballs.remove(fireball)
+
+    check_fireball_enemy_collision(fireballs=fireballs, enemies=enemies)
+
+def update_screen(screen, mario, level, items, fireballs, enemies, sb):
     level.blitme()
     mario.blitme()
     for item in items:
         item.blitme()
+    for fireball in fireballs:
+        fireball.draw_fireball()
+    for enemy in enemies:
+        enemy.blitme()
+
+    sb.show_score()
     pygame.display.flip()

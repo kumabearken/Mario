@@ -1,5 +1,7 @@
 import pygame
-REAL = False
+from spritesheet import SpriteSheet
+from Timer import Timer
+REAL = True
 
 class Brick():
     def __init__(self, width, height, x, y):
@@ -7,13 +9,14 @@ class Brick():
         self.rect = self.sur.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.sprite_sheet = pygame.image.load("Images/custom.png")
 
 class Pipe(Brick):
     def __init__(self,width, height, x,y,item):
         super().__init__(width, height, x, y)
         if REAL:
             self.sur.set_alpha(0)
-        self.sur.fill((50,50,50))
+        self.sur.fill((0,0,0))
         self.breakable= False
         self.items = item
         self.interactable = False
@@ -43,7 +46,9 @@ class Basic(Brick):
         super().__init__(width, height, x, y)
         if REAL:
             self.sur.set_alpha(0)
-        self.sur.fill((150,150,150))
+        self.sur = pygame.Surface((16, 16))
+        self.sur.blit(self.sprite_sheet, (0, 0), (48, 0, 16, 16))
+        self.sur = pygame.transform.scale2x(self.sur)
         self.breakable = True
         self.items = item
 
@@ -52,7 +57,9 @@ class Question(Brick):
         super().__init__(width, height, x, y)
         if REAL:
             self.sur.set_alpha(0)
-        self.sur.fill((200,200,200))
+        self.sur = pygame.Surface((16,16))
+        self.sur.blit(self.sprite_sheet,(0,0), (0,0,16,16))
+        self.sur = pygame.transform.scale2x(self.sur)
         self.breakable = False
         self.active =True
         self.items = item
