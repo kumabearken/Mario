@@ -202,7 +202,7 @@ def check_collisiontype(level, mario, LEVELS, items, screen,fireballs):
                         and mario.rect.left < blocks.rect.left:
                     mario.rect.right = blocks.rect.left -1
                     mario.obstacleR = True
-                    change_zone(mario=mario,level=level,LEVELS=LEVELS,index=0, settings=2, screen=screen,items=items)
+                    change_zone(mario=mario,level=level,LEVELS=LEVELS,index=0, settings=2, screen=screen,items=items,situation=0)
                     print("culprit 2")
                 else:
                     mario.obstacleR = False
@@ -221,6 +221,9 @@ def check_collisiontype(level, mario, LEVELS, items, screen,fireballs):
                     and mario.rect.top > blocks.rect.top-16\
                     and mario.rect.bottom <= blocks.rect.bottom:
                 print("got flag")
+                if not mario.got_flag:
+                    flag_animation(mario=mario, goal=blocks.rect.bottom, level=level)
+                    reset_level(mario=mario, level=level, LEVELS=LEVELS, index=2,situation=1)
             #RESET-----------------------------------------------------------------------------------------------
             else:
                 mario.obstacleR = False
@@ -282,7 +285,7 @@ def check_collisiontype(level, mario, LEVELS, items, screen,fireballs):
                     mario.rect.y = blocks.rect.y - 64
                 if mario.crouching:
                     print('crouching')
-                    change_zone(mario=mario, level=level, LEVELS=LEVELS, index=1, settings=1, screen=screen, items=items)
+                    change_zone(mario=mario, level=level, LEVELS=LEVELS, index=1, settings=1, screen=screen, items=items,situation=0)
                     mario.rect.x = 100
                     mario.rect.y = 100
                     mario.center = mario.rect.centerx
@@ -350,10 +353,10 @@ def check_fireball_enemy_collision(fireballs, enemies):
 def check_mario_offstage(mario, level,LEVELS):
     if mario.rect.bottom >= 470:
         print("mario offstage")
-        reset_level(mario=mario, level=level, LEVELS=LEVELS, index=0)
+        reset_level(mario=mario, level=level, LEVELS=LEVELS, index=0,situation=0)
 
-def change_zone(mario, level, LEVELS, index, settings, screen,items):
-    level.move_zone(mario=mario,LEVELS=LEVELS, index=index, settings=settings,items=items)
+def change_zone(mario, level, LEVELS, index, settings, screen,items,situation):
+    level.move_zone(mario=mario,LEVELS=LEVELS, index=index, settings=settings,items=items,situation=situation)
     if settings == 1:
         file = "Coins.txt"
         create_coins(screen=screen, file=file, items=items)
@@ -383,9 +386,21 @@ def create_item(items,screen,block,item_type,mario):
     item.rect.left = block.rect.left
     items.append(item)
 
+def flag_animation(mario, goal, level):
+    bottom = False
+    while not bottom:
+        mario.rect.y += 1
+        level.blitme()
+        mario.blitme()
+        pygame.display.flip()
+        print(mario.rect.y)
+        if mario.rect.y >= goal-32:
+            bottom=True
+        time.sleep(.00125)
 
-def reset_level(mario, level, LEVELS, index):
-    level.reset(LEVELS[index])
+
+def reset_level(mario, level, LEVELS, index,situation):
+    level.reset(file=LEVELS[index],index=situation)
     mario.dead = False
     mario.rect.x= 50
     mario.rect.y = 200
@@ -431,6 +446,8 @@ def update_screen(screen, mario, level, items, fireballs, enemies, sb):
     mario.blitme()
     for item in items:
         item.blitme()
+        if item.bound:
+            items.remove(item)
     for fireball in fireballs:
         fireball.draw_fireball()
     for enemy in enemies:

@@ -51,6 +51,7 @@ class Mario(Sprite):
         self.brick = False
         self.obstacleL = False
         self.obstacleR = False
+        self.got_flag = False
 
     def blitme(self):
         if self.facing_right:

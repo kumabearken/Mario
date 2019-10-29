@@ -11,9 +11,11 @@ if CREATE:
 END = True
 SCREENX=960
 SCREENY=470
+MAPS = ['Images/bg-1-1.png','Images/bg-1-2.png']
+
 class Level():
     def __init__(self, screen):
-        self.image = pygame.image.load('Images/bg-1-1.png')
+        self.image = pygame.image.load(MAPS[0])
         self.screen = screen
         self.rect = self.image.get_rect()
         self.environment = []
@@ -98,8 +100,8 @@ class Level():
             self.move = False
             #print("camera NOT moving")
 
-    def move_zone(self,mario,LEVELS,index, settings,items):
-        self.reset(LEVELS[index])
+    def move_zone(self,mario,LEVELS,index, settings,items,situation):
+        self.reset(file=LEVELS[index],index=situation)
         if (settings == 1):
             self.start_x = 0
             self.end_x = SCREENX
@@ -117,8 +119,9 @@ class Level():
                 objects.rect.x -= SCREENX * 5
 
 
-    def reset(self,file):
+    def reset(self,file,index):
         self.environment = []
+        self.image = pygame.image.load(MAPS[index])
         self.create_rects(file=file)
         self.start_x = 0
         self.end_x= SCREENX

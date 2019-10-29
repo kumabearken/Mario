@@ -13,7 +13,7 @@ from Enemies import *
 from Scoreboard import Scoreboard
 from Stats import GameStats
 
-LEVELS = ['LevelSettings1.txt','LevelSettings1-1.txt']
+LEVELS = ['LevelSettings1.txt','LevelSettings1-1.txt','LevelSettings2.txt']
 
 
 

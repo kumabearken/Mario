@@ -12,6 +12,7 @@ class Items(Sprite):
         self.obstacleL=False
         self.speedx = 2
         self.speedy = 4
+        self.bound = False
 
     def blitme(self):
         self.screen.blit(self.image, self.rect)
@@ -163,6 +164,7 @@ class Items(Sprite):
             if self.rect.left < -32:
                 self.obstacleL = True
                 self.rect.left = -32
+                self.bounds=True
 
 class Mushroom(Items):
     def __init__(self,screen):
