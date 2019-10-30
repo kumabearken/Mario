@@ -96,8 +96,8 @@ def check_mario_enemy_collision(screen, mario, enemies, stats, sb, level, LEVELS
                     stats.lives_left -= 1
                     sb.prep_lives()
                     mario.death_animation()
-                    if stats.lives_left < 0:
-                        reset_level(mario=mario, level=level, LEVELS=LEVELS, index=2, situation=1)
+                    if mario.rect.top >= Constants.WINDOW_HEIGHT:
+                        reset_level(mario=mario, level=level, LEVELS=LEVELS, index=0, situation=0)
 
 def check_mario_item_collision(screen, mario, items, stats, sb):
     for item in items:
